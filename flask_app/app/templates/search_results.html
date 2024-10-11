@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результаты поиска</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="home-container">
+        <h2>Результаты поиска для "{{ query }}"</h2>
+
+        {% if results %}
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Категория</th>
+                            <th>Количество</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in results %}
+                        <tr>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.category }}</td>
+                            <td>
+                                <form id="editProductForm" method="POST" action="{{ url_for('routes.update_product', product_id=product.id) }}">
+                                    <input type="number" name="quantity" value="{{ product.quantity }}" min="0" class="quantity-input">
+                            </td>
+                            <td>
+                                <input type="number" name="price" value="{{ product.price }}" step="0.01" min="0" class="price-input">
+                            </td>
+                            <td>
+                                <button type="submit" class="btn update-btn">Обновить</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="action-buttons">
+                    <a href="{{ url_for('routes.home') }}" class="btn logout-btn">Назад на главную</a>
+                    <a href="{{ url_for('routes.logout') }}" class="btn logout-btn">Выйти</a>
+                </div>
+            </div>
+
+            <script>
+                document.getElementById("editProductForm").onsubmit = function(event) {
+                    event.preventDefault();
+                    const formData = new FormData(this);
+
+                    fetch(this.action, {
+                        method: this.method,
+                        body: formData,
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+
+                        if (data.includes('Product added successfully')) {
+                            alert('Товар успешно добавлен!'); // Всплывающее окно с сообщением
+                            window.location.href = "{{ url_for('routes.home') }}"; // Перенаправление на главную страницу
+                        }
+                    })
+                    .catch(error => console.error('Ошибка:', error));
+                }
+            </script>
+
+        {% else %}
+            <p>Товары не найдены.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

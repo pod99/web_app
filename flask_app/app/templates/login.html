@@ -1,0 +1,184 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="login-container">
+    <h2>Вход</h2>
+    <form id="loginForm" method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="username">{{ form.username.label }}</label>
+            {{ form.username(class='form-input') }}
+            {% if form.username.errors %}
+                <ul class="error-messages">
+                    {% for error in form.username.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="password">{{ form.password.label }}</label>
+            {{ form.password(class='form-input') }}
+            {% if form.password.errors %}
+                <ul class="error-messages">
+                    {% for error in form.password.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn login-btn">Войти</button>
+    </form>
+    <p>Нет аккаунта? <a href="{{ url_for('routes.register') }}">Зарегистрируйтесь</a></p>
+</div>
+
+<!-- Окно ошибки входа -->
+<div id="errorModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Ошибка входа</h2>
+        <p id="errorMessage">Неверный логин или пароль.</p>
+        <button class="btn" id="closeErrorButton">Закрыть</button>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 20px;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    .form-group {
+        margin-bottom: 15px;
+        width: 100%;
+    }
+    .form-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: border-color 0.3s;
+    }
+    .form-input:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        background-color: #28a745;
+        color: white;
+        font-size: 16px;
+        text-decoration: none;
+        text-align: center;
+        transition: background-color 0.3s;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .btn:hover {
+        background-color: #218838;
+    }
+    .error-messages {
+        color: red;
+        list-style-type: none;
+        padding: 0;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        text-align: center;
+        border-radius: 10px;
+    }
+    .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close-button:hover,
+    .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    document.getElementById("loginForm").onsubmit = function(event) {
+        event.preventDefault(); // предотвращает стандартное поведение формы
+        const formData = new FormData(this);
+
+        fetch(this.action, {
+            method: this.method,
+            body: formData,
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text();
+            } else {
+                throw new Error('Ошибка входа'); // Генерируем ошибку при неуспешном ответе
+            }
+        })
+        .then(data => {
+            // Проверка на наличие ошибок
+            if (data.includes('Неверный логин или пароль')) {
+                showErrorModal('Неверный логин или пароль.'); // Показываем модальное окно с ошибкой
+            } else {
+                // Если вход успешен
+                window.location.href = "{{ url_for('routes.home') }}"; // Перенаправляем на главную страницу
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            showErrorModal('Произошла ошибка при входе.'); // Показываем модальное окно с ошибкой
+        });
+    };
+
+    function showErrorModal(message) {
+        document.getElementById('errorMessage').innerText = message; // Устанавливаем сообщение об ошибке
+        document.getElementById('errorModal').style.display = "block"; // Показываем модальное окно
+    }
+
+    const errorModal = document.getElementById('errorModal');
+    const closeButton = document.querySelector('.close-button');
+    const closeErrorButton = document.getElementById('closeErrorButton');
+
+    // Закрываем модальное окно
+    closeButton.addEventListener('click', () => {
+        errorModal.style.display = "none";
+    });
+
+    closeErrorButton.addEventListener('click', () => {
+        errorModal.style.display = "none"; // Закрываем модальное окно
+    });
+
+    // Закрываем модальное окно при нажатии вне его
+    window.addEventListener('click', (event) => {
+        if (event.target == errorModal) {
+            errorModal.style.display = "none";
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My App{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <script>
+        $(document).ready(function() {
+            $('.update-btn').click(function() {
+                var productId = $(this).data('id');
+                var quantity = $('#quantity-' + productId).val();
+                var price = $('#price-' + productId).val();
+
+                $.post('/update_product/' + productId, {
+                    quantity: quantity,
+                    price: price
+                })
+                .done(function(response) {
+                    alert(response.message);
+                })
+                .fail(function() {
+                    alert('Ошибка обновления товара.');
+                });
+            });
+        });
+    </script>
+
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            <ul>
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <div>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
